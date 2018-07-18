@@ -1,0 +1,22 @@
+steps for pgrouting
+
+given nodes, routes != a topology (e.g. al-Turayya)
+--------------------------------------------------
+- create empty source, target fields (INT) in routes
+- get x1,y1,x2,y2 into routes from node geometry
+- create linestring geometry geom_line in routes from x1,y1,x2,y2
+- SELECT pgr_createTopology('routes', 0.001,'geom_line', 'id', 'source', 'target');
+	-> generated routes_vertices_pgr table
+- SELECT pgr_analyzeGraph('routes',0.001,'geom_line','id','source','target');
+- SELECT * FROM pgr_dijkstra('SELECT id, source, target, cost, reverse_cost FROM routes', 1551,1241 );
+	-> returns 
+		path_seq, 
+		node, # routes_vertices_pgr.id; needs mapping back to nodes
+		edge, # routes.id
+		cost, # distance in meters for alturayya
+		agg_cost # sums cost 
+- create & populate snode_id, tnode_id fields in routes 
+		update routes r set snode_id = n.id from nodes n where r.sid = n.placeid;
+		update routes r set tnode_id = n.id from nodes n where r.eid = n.placeid;
+
+- 
